@@ -1,4 +1,4 @@
-#include "DxLib.h"
+﻿#include "DxLib.h"
 
 #define DISPLAY_WIDTH 640
 #define DISPLAY_HEIGHT 480
@@ -12,6 +12,47 @@ typedef struct {
     int x;
     int y;
 } Origin;
+
+// check mouse left key down
+// return 0: true, return -1: false
+int isPress(){
+    static int flag = 0;
+
+    if(GetMouseInput() && MOUSE_INPUT_LEFT){
+        if(flag == 0){  // down
+            flag = 1;
+            return 0;
+        }
+        else if(flag == 1){  // hold down
+            flag = 2;
+        }
+    }
+    else{
+        flag = 0;  // up
+    }
+
+    return -1;
+}
+
+void ReversePiece(Color piece[PIECE_COL][PIECE_ROW], int x, int y){
+    for(int i = x - 1; i <= x + 1; i++){
+        for(int j = y - 1; j <= y + 1; j++){
+            if(
+                i >= 0 && i < PIECE_COL
+                && j >= 0 && j < PIECE_ROW
+            ){
+                switch(piece[i][j]){
+                    case RED:
+                        piece[i][j] = BLUE;
+                        break;
+                    case BLUE:
+                        piece[i][j] = RED;
+                        break;
+                }
+            }
+        }
+    }
+}
 
 void DrawPiece(int x, int y, Origin origin, Color color){
     switch(color){
@@ -52,14 +93,35 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         }
     }
 
-    // print piece
+    int mouseX, mouseY;
+    int pieceX, pieceY;
+
+    int downFlag = 0;
+    while(CheckHitKey(KEY_INPUT_ESCAPE) == 0 && ProcessMessage() == 0){
+        if(isPress() == 0){
+            // get pointer
+            GetMousePoint(&mouseX, &mouseY);
+
+            // reverse check
+            pieceX = (mouseX - pieceOrigin.x) / PIECE_SIZE;
+            pieceY = (mouseY - pieceOrigin.y) / PIECE_SIZE;
+            if(
+                pieceX >= 0 && pieceX < PIECE_COL
+                && pieceY >= 0 && pieceY < PIECE_ROW
+                && mouseX >= pieceOrigin.x
+                && mouseY >= pieceOrigin.y
+            ){
+                ReversePiece(piece, pieceX, pieceY);
+            }
+        }
+
+        // print piece
         for(int y = 0; y < PIECE_ROW; y++){
             for(int x = 0; x < PIECE_COL; x++){
-            DrawPiece(x, y, pieceOrigin, piece[x][y]);
+                DrawPiece(x, y, pieceOrigin, piece[x][y]);
+            }
         }
     }
-
-    WaitKey();
 
     DxLib_End();
 
