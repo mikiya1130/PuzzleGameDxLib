@@ -93,8 +93,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         }
     }
 
-    //int mouse.x, mouse.y;
-    //int cell.x, cell.y;
     Coordinate mouse, cell;
 
     int downFlag = 0;
