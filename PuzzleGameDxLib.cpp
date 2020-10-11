@@ -175,6 +175,12 @@ void GamePlay(){
     }
 }
 
+void DrawMessage(const char str[]){
+    int x = (DISPLAY_WIDTH - GetDrawStringWidth(str, -1)) / 2;
+    int y = 30;
+    DrawString(x, y, str, GetColor(255, 255, 0));
+}
+
 void DrawButton(Coordinate button[BUTTON_NUM]){
     char str[BUTTON_NUM][20] = {
         "NEW GAME",
@@ -238,6 +244,9 @@ void SelectButton(Coordinate button[BUTTON_NUM]){
 }
 
 void GameClear(){
+    DrawMessage("CLEAR!!");
+    WaitTimer(1000);
+
     Coordinate button[BUTTON_NUM];
     DrawButton(button);
     SelectButton(button);
