@@ -5,6 +5,7 @@
 #define PIECE_COL 5
 #define PIECE_ROW 5
 #define PIECE_SIZE 50
+#define REVERSE_NUM 5
 
 typedef enum {RED, BLUE} Color;
 
@@ -13,25 +14,24 @@ typedef struct {
     int y;
 } Coordinate;
 
-// check mouse left key down
-// return 0: true, return -1: false
-int isPress(){
-    static int flag = 0;
+void GenerateReverseCell(Coordinate *cell){
+    int n = 0;
+    while(n < REVERSE_NUM){
+        cell[n].x = GetRand(PIECE_COL - 1);
+        cell[n].y = GetRand(PIECE_ROW - 1);
 
-    if(GetMouseInput() && MOUSE_INPUT_LEFT){
-        if(flag == 0){  // down
-            flag = 1;
-            return 0;
+        int flag = 0;
+        for(int i = 0; i < n; i++){
+            if(cell[i].x == cell[n].x && cell[i].y == cell[n].y){
+                flag = -1;
+                break;
+            }
         }
-        else if(flag == 1){  // hold down
-            flag = 2;
+
+        if(flag != -1){
+            n++;
         }
     }
-    else{
-        flag = 0;  // up
-    }
-
-    return -1;
 }
 
 void ReversePiece(Color piece[PIECE_COL][PIECE_ROW], Coordinate cell){
@@ -54,6 +54,41 @@ void ReversePiece(Color piece[PIECE_COL][PIECE_ROW], Coordinate cell){
     }
 }
 
+void InitPieceColor(Color piece[PIECE_COL][PIECE_ROW]){
+    for(int y = 0; y < PIECE_ROW; y++){
+        for(int x = 0; x < PIECE_COL; x++){
+                piece[x][y] = RED;
+        }
+    }
+
+    Coordinate reverseCell[REVERSE_NUM];
+    GenerateReverseCell(reverseCell);
+    for(int i = 0; i < REVERSE_NUM; i++){
+        ReversePiece(piece, reverseCell[i]);
+    }
+}
+
+// check mouse left key down
+// return 0: true, return -1: false
+int isPress(){
+    static int flag = 0;
+
+    if(GetMouseInput() && MOUSE_INPUT_LEFT){
+        if(flag == 0){  // down
+            flag = 1;
+            return 0;
+        }
+        else if(flag == 1){  // hold down
+            flag = 2;
+        }
+    }
+    else{
+        flag = 0;  // up
+    }
+
+    return -1;
+}
+
 void DrawPiece(int x, int y, Coordinate origin, Color color){
     switch(color){
         case RED:
@@ -74,24 +109,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         return -1;
     }
 
-    Color piece[PIECE_COL][PIECE_ROW];
     Coordinate origin;
 
     // centering
     origin.x = DISPLAY_WIDTH / 2 - PIECE_SIZE * PIECE_COL / 2;
     origin.y = DISPLAY_HEIGHT / 2 - PIECE_SIZE * PIECE_ROW / 2;
 
-    // init color
-    for(int y = 0; y < PIECE_ROW; y++){
-        for(int x = 0; x < PIECE_COL; x++){
-            if((x + y) % 2 == 0){
-                piece[x][y] = RED;
-            }
-            else{
-                piece[x][y] = BLUE;
-            }
-        }
-    }
+    Color piece[PIECE_COL][PIECE_ROW];
+
+    InitPieceColor(piece);
 
     Coordinate mouse, cell;
 
