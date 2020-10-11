@@ -17,6 +17,7 @@
 enum {
     PLAY,
     CLEAR,
+    END,
 } state;
 
 void GamePlay();
@@ -123,6 +124,8 @@ void DrawPiece(int x, int y, Coordinate origin, Color color){
 }
 
 void GamePlay(){
+    ClearDrawScreen();
+
     Coordinate origin;
 
     // centering
@@ -172,7 +175,7 @@ void GamePlay(){
     }
 }
 
-void DrawButton(){
+void DrawButton(Coordinate button[BUTTON_NUM]){
     char str[BUTTON_NUM][20] = {
         "NEW GAME",
         "EXIT GAME",
@@ -193,6 +196,10 @@ void DrawButton(){
         DrawBox(x, y, x + BUTTON_WIDTH, y + BUTTON_HEIGHT, GetColor(100, 100, 100), TRUE);
         DrawBox(x, y, x + BUTTON_WIDTH, y + BUTTON_HEIGHT, GetColor(255, 255, 0), FALSE);  // border
 
+        // memory button origin
+        button[i].x = x;
+        button[i].y = y;
+
         // text
         x = (DISPLAY_WIDTH - GetDrawStringWidth(str[i], -1)) / 2;
         y = y + (BUTTON_HEIGHT - FONT_SIZE) / 2;
@@ -200,9 +207,40 @@ void DrawButton(){
     }
 }
 
+void SelectButton(Coordinate button[BUTTON_NUM]){
+    Coordinate mouse;
+
+    while(CheckHitKey(KEY_INPUT_ESCAPE) == 0 && ProcessMessage() == 0 && state == CLEAR){
+        if(isPress() == 0){
+            // get pointer
+            GetMousePoint(&mouse.x, &mouse.y);
+
+            int i;
+            for(i = 0; i < BUTTON_NUM; i++){
+                if(
+                    mouse.x >= button[i].x && mouse.x < button[i].x + BUTTON_WIDTH
+                    && mouse.y >= button[i].y && mouse.y < button[i].y + BUTTON_HEIGHT
+                ){
+                    break;
+                }
+            }
+
+            switch(i){
+                case 0:
+                    state = PLAY;
+                    break;
+                case 1:
+                    state = END;
+                    break;
+            }
+        }
+    }
+}
+
 void GameClear(){
-    DrawButton();
-    WaitKey();
+    Coordinate button[BUTTON_NUM];
+    DrawButton(button);
+    SelectButton(button);
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow){
@@ -217,7 +255,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     SetFontSize(FONT_SIZE);
 
     state = PLAY;
-    while(CheckHitKey(KEY_INPUT_ESCAPE) == 0 && ProcessMessage() == 0){
+    while(CheckHitKey(KEY_INPUT_ESCAPE) == 0 && ProcessMessage() == 0 || state == END){
         Method[state]();
     }
 
