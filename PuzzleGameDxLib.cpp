@@ -1,4 +1,4 @@
-﻿#include "DxLib.h"
+#include "DxLib.h"
 
 #define DISPLAY_WIDTH 640
 #define DISPLAY_HEIGHT 480
@@ -6,6 +6,18 @@
 #define PIECE_ROW 5
 #define PIECE_SIZE 50
 #define REVERSE_NUM 5
+
+typedef enum {
+    PLAY,
+    CLEAR,
+} GameState;
+
+void GamePlay();
+void GameClear();
+void (*Method[])() = {
+    GamePlay,
+    GameClear,
+};
 
 typedef enum {RED, BLUE} Color;
 
@@ -103,15 +115,7 @@ void DrawPiece(int x, int y, Coordinate origin, Color color){
     DrawBox(origin.x + x * PIECE_SIZE, origin.y + y * PIECE_SIZE, origin.x + (x + 1) * PIECE_SIZE, origin.y + (y + 1) * PIECE_SIZE, GetColor(255, 255, 255), FALSE);
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow){
-    ChangeWindowMode(TRUE);
-    SetGraphMode(DISPLAY_WIDTH, DISPLAY_HEIGHT, 16);
-    SetMainWindowText("PuzzleGameDxLib");
-
-    if (DxLib_Init() == -1){
-        return -1;
-    }
-
+void GamePlay(){
     Coordinate origin;
 
     // centering
@@ -147,9 +151,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         for(int y = 0; y < PIECE_ROW; y++){
             for(int x = 0; x < PIECE_COL; x++){
                 DrawPiece(x, y, origin, piece[x][y]);
-            }
-        }
+}
+
+void GameClear(){
+    printfDx("clear\n");
+    WaitKey();
+}
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow){
+    ChangeWindowMode(TRUE);
+    SetGraphMode(DISPLAY_WIDTH, DISPLAY_HEIGHT, 16);
+    SetMainWindowText("PuzzleGameDxLib");
+
+    if (DxLib_Init() == -1){
+        return -1;
     }
+
+    GameState state = CLEAR;
+    Method[state]();
 
     DxLib_End();
 
