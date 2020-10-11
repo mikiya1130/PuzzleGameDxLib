@@ -2,10 +2,17 @@
 
 #define DISPLAY_WIDTH 640
 #define DISPLAY_HEIGHT 480
+#define FONT_SIZE 64
+
 #define PIECE_COL 5
 #define PIECE_ROW 5
 #define PIECE_SIZE 50
 #define REVERSE_NUM 5
+
+#define BUTTON_WIDTH 350
+#define BUTTON_HEIGHT 80
+#define BUTTON_MARGIN 30
+#define BUTTON_NUM 2
 
 enum {
     PLAY,
@@ -165,8 +172,36 @@ void GamePlay(){
     }
 }
 
+void DrawButton(){
+    char str[BUTTON_NUM][20] = {
+        "NEW GAME",
+        "EXIT GAME",
+    };
+
+    Coordinate origin;
+
+    origin.x = DISPLAY_WIDTH / 2 - BUTTON_WIDTH / 2;
+    origin.y = DISPLAY_HEIGHT / 2 - BUTTON_HEIGHT / 2 - (BUTTON_HEIGHT + BUTTON_MARGIN) * (BUTTON_NUM / 2);
+    if(BUTTON_NUM % 2 == 0){
+        origin.y += (BUTTON_HEIGHT + BUTTON_MARGIN) / 2;
+    }
+
+    for(int i = 0; i < BUTTON_NUM; i++){
+        // button
+        int x = origin.x;
+        int y = origin.y + (BUTTON_HEIGHT + BUTTON_MARGIN) * i;
+        DrawBox(x, y, x + BUTTON_WIDTH, y + BUTTON_HEIGHT, GetColor(100, 100, 100), TRUE);
+        DrawBox(x, y, x + BUTTON_WIDTH, y + BUTTON_HEIGHT, GetColor(255, 255, 0), FALSE);  // border
+
+        // text
+        x = (DISPLAY_WIDTH - GetDrawStringWidth(str[i], -1)) / 2;
+        y = y + (BUTTON_HEIGHT - FONT_SIZE) / 2;
+        DrawString(x, y, str[i], GetColor(255, 255, 0));
+    }
+}
+
 void GameClear(){
-    printfDx("clear\n");
+    DrawButton();
     WaitKey();
 }
 
@@ -178,6 +213,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     if (DxLib_Init() == -1){
         return -1;
     }
+
+    SetFontSize(FONT_SIZE);
 
     state = PLAY;
     while(CheckHitKey(KEY_INPUT_ESCAPE) == 0 && ProcessMessage() == 0){
