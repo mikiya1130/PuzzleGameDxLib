@@ -1,4 +1,4 @@
-#include "DxLib.h"
+﻿#include "DxLib.h"
 
 #define DISPLAY_WIDTH 640
 #define DISPLAY_HEIGHT 480
@@ -7,10 +7,10 @@
 #define PIECE_SIZE 50
 #define REVERSE_NUM 5
 
-typedef enum {
+enum {
     PLAY,
     CLEAR,
-} GameState;
+} state;
 
 void GamePlay();
 void GameClear();
@@ -147,10 +147,22 @@ void GamePlay(){
             }
         }
 
+        int clearFlag = 0;
         // print piece
         for(int y = 0; y < PIECE_ROW; y++){
             for(int x = 0; x < PIECE_COL; x++){
                 DrawPiece(x, y, origin, piece[x][y]);
+                if(piece[x][y] != RED){
+                    clearFlag = -1;
+                }
+            }
+        }
+
+        if(clearFlag == 0){
+            state = CLEAR;
+            break;
+        }
+    }
 }
 
 void GameClear(){
@@ -167,8 +179,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         return -1;
     }
 
-    GameState state = CLEAR;
-    Method[state]();
+    state = PLAY;
+    while(CheckHitKey(KEY_INPUT_ESCAPE) == 0 && ProcessMessage() == 0){
+        Method[state]();
+    }
 
     DxLib_End();
 
