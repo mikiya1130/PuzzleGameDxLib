@@ -1,8 +1,9 @@
-#include "DxLib.h"
+﻿#include "DxLib.h"
 
 #define DISPLAY_WIDTH 640
 #define DISPLAY_HEIGHT 480
 #define FONT_SIZE 64
+#define FONT_SIZE_MIN 32
 
 #define PIECE_COL 5
 #define PIECE_ROW 5
@@ -36,6 +37,10 @@ typedef struct {
     int x;
     int y;
 } Coordinate;
+
+int playCounter = 0;
+int winCounter = 0;
+int winPercentage;
 
 void GenerateReverseCell(Coordinate *cell){
     int n = 0;
@@ -126,6 +131,11 @@ void DrawPiece(int x, int y, Coordinate origin, Color color){
     DrawBox(origin.x + x * PIECE_SIZE, origin.y + y * PIECE_SIZE, origin.x + (x + 1) * PIECE_SIZE, origin.y + (y + 1) * PIECE_SIZE, GetColor(255, 255, 255), FALSE);
 }
 
+void ClearBottom(){
+    int y = DISPLAY_HEIGHT - 30 - FONT_SIZE_MIN * 2;
+    DrawBox(0, y, DISPLAY_WIDTH, DISPLAY_HEIGHT, GetColor(0, 0, 0), TRUE);
+}
+
 void GamePlay(){
     ClearDrawScreen();
 
@@ -142,6 +152,7 @@ void GamePlay(){
     Coordinate mouse, cell;
 
     int downFlag = 0;
+    int reverseCounter = REVERSE_NUM;
     while(CheckHitKey(KEY_INPUT_ESCAPE) == 0 && ProcessMessage() == 0){
         if(isPress() == 0){
             // get pointer
@@ -157,6 +168,7 @@ void GamePlay(){
                 && mouse.y >= origin.y
             ){
                 ReversePiece(piece, cell);
+                reverseCounter--;
             }
         }
 
@@ -171,17 +183,33 @@ void GamePlay(){
             }
         }
 
+        // print click num
+        SetFontSize(FONT_SIZE_MIN);
+        char str[20];
+
+        ClearBottom();
+        sprintf_s(str, "REVERSE:%d", reverseCounter);
+        int x = (DISPLAY_WIDTH - GetDrawStringWidth(str, -1)) / 2;
+        int y = DISPLAY_HEIGHT - 30 - FONT_SIZE_MIN;
+        DrawString(x, y, str, GetColor(255, 255, 255));
+
         if(clearFlag == 0){
             state = CLEAR;
+            break;
+        }
+
+        if(reverseCounter <= 0){
+            state = GAMEOVER;
             break;
         }
     }
 }
 
 void DrawMessage(const char str[]){
+    SetFontSize(FONT_SIZE);
     int x = (DISPLAY_WIDTH - GetDrawStringWidth(str, -1)) / 2;
     int y = 30;
-    DrawString(x, y, str, GetColor(255, 255, 0));
+    DrawString(x, y, str, GetColor(255, 255, 255));
 }
 
 void DrawButton(Coordinate button[BUTTON_NUM]){
@@ -203,16 +231,17 @@ void DrawButton(Coordinate button[BUTTON_NUM]){
         int x = origin.x;
         int y = origin.y + (BUTTON_HEIGHT + BUTTON_MARGIN) * i;
         DrawBox(x, y, x + BUTTON_WIDTH, y + BUTTON_HEIGHT, GetColor(100, 100, 100), TRUE);
-        DrawBox(x, y, x + BUTTON_WIDTH, y + BUTTON_HEIGHT, GetColor(255, 255, 0), FALSE);  // border
+        DrawBox(x, y, x + BUTTON_WIDTH, y + BUTTON_HEIGHT, GetColor(255, 255, 255), FALSE);  // border
 
         // memory button origin
         button[i].x = x;
         button[i].y = y;
 
         // text
+        SetFontSize(FONT_SIZE);
         x = (DISPLAY_WIDTH - GetDrawStringWidth(str[i], -1)) / 2;
         y = y + (BUTTON_HEIGHT - FONT_SIZE) / 2;
-        DrawString(x, y, str[i], GetColor(255, 255, 0));
+        DrawString(x, y, str[i], GetColor(255, 255, 255));
     }
 }
 
@@ -235,20 +264,43 @@ void SelectButton(Coordinate button[BUTTON_NUM]){
             }
 
             if(i == 0){
-                    state = PLAY;
-                    break;
+                state = PLAY;
+                break;
             }
             else if(i == 1){
-                    state = END;
-                    break;
+                state = END;
+                break;
             }
         }
     }
 }
 
+void DrawInformation(){
+    int x, y;
+    char str[100];
+    SetFontSize(FONT_SIZE_MIN);
+
+    ClearBottom();
+
+    sprintf_s(str, "TOTAL:%d WON:%d", playCounter, winCounter);
+    x = (DISPLAY_WIDTH - GetDrawStringWidth(str, -1)) / 2;
+    y = DISPLAY_HEIGHT - 30 - FONT_SIZE_MIN * 2;
+    DrawString(x, y, str, GetColor(255, 255, 255));
+
+    sprintf_s(str, "WIN PERCENTAGE:%d%%", winPercentage);
+    x = (DISPLAY_WIDTH - GetDrawStringWidth(str, -1)) / 2;
+    y = DISPLAY_HEIGHT - 30 - FONT_SIZE_MIN;
+    DrawString(x, y, str, GetColor(255, 255, 255));
+}
+
 void GameClear(){
     DrawMessage("CLEAR!!");
     WaitTimer(1000);
+
+    playCounter++;
+    winCounter++;
+    winPercentage = winCounter * 100 / playCounter;
+    DrawInformation();
 
     Coordinate button[BUTTON_NUM];
     DrawButton(button);
@@ -258,6 +310,10 @@ void GameClear(){
 void GameOver(){
     DrawMessage("GAME OVER");
     WaitTimer(1000);
+
+    playCounter++;
+    winPercentage = winCounter * 100 / playCounter;
+    DrawInformation();
 
     Coordinate button[BUTTON_NUM];
     DrawButton(button);
@@ -272,8 +328,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     if (DxLib_Init() == -1){
         return -1;
     }
-
-    SetFontSize(FONT_SIZE);
 
     state = PLAY;
     while(CheckHitKey(KEY_INPUT_ESCAPE) == 0 && ProcessMessage() == 0 || state == END){
