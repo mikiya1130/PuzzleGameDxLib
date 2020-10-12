@@ -19,6 +19,10 @@ You need to unify all pieces in red within five times.
 
 - Download the `Release/PuzzleGameDxLib.exe` file and run
 
+## Note
+
+This source file is cpp extension, but only using C language.
+
 ## License
 
 Unlicense
