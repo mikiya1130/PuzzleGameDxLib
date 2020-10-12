@@ -1,4 +1,4 @@
-﻿#include "DxLib.h"
+#include "DxLib.h"
 
 #define DISPLAY_WIDTH 640
 #define DISPLAY_HEIGHT 480
@@ -17,14 +17,17 @@
 enum {
     PLAY,
     CLEAR,
+    GAMEOVER,
     END,
 } state;
 
 void GamePlay();
 void GameClear();
+void GameOver();
 void (*Method[])() = {
     GamePlay,
     GameClear,
+    GameOver,
 };
 
 typedef enum {RED, BLUE} Color;
@@ -216,7 +219,7 @@ void DrawButton(Coordinate button[BUTTON_NUM]){
 void SelectButton(Coordinate button[BUTTON_NUM]){
     Coordinate mouse;
 
-    while(CheckHitKey(KEY_INPUT_ESCAPE) == 0 && ProcessMessage() == 0 && state == CLEAR){
+    while(CheckHitKey(KEY_INPUT_ESCAPE) == 0 && ProcessMessage() == 0){
         if(isPress() == 0){
             // get pointer
             GetMousePoint(&mouse.x, &mouse.y);
@@ -231,11 +234,11 @@ void SelectButton(Coordinate button[BUTTON_NUM]){
                 }
             }
 
-            switch(i){
-                case 0:
+            if(i == 0){
                     state = PLAY;
                     break;
-                case 1:
+            }
+            else if(i == 1){
                     state = END;
                     break;
             }
@@ -245,6 +248,15 @@ void SelectButton(Coordinate button[BUTTON_NUM]){
 
 void GameClear(){
     DrawMessage("CLEAR!!");
+    WaitTimer(1000);
+
+    Coordinate button[BUTTON_NUM];
+    DrawButton(button);
+    SelectButton(button);
+}
+
+void GameOver(){
+    DrawMessage("GAME OVER");
     WaitTimer(1000);
 
     Coordinate button[BUTTON_NUM];
