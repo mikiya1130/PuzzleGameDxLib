@@ -17,7 +17,7 @@ You need to unify all pieces in red within five times.
 
 ## Usage
 
-- Download the `PuzzleGameDxLib.exe` file and run
+- Download the `Release/PuzzleGameDxLib.exe` file and run
 
 ## License
 
